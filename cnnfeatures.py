@@ -4,7 +4,7 @@ import pandas as pd
 import time
 import cv2
 import json
-from texture_pkg import sample_img, random_crop
+from .preprocessing import sample_img, random_crop
 # Keras modules
 import keras
 from keras.models import Model

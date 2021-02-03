@@ -4,7 +4,8 @@ import pandas as pd
 import time
 import cv2
 import json
-from texture_pkg import interpolate, sample_img
+from .helpers import interpolate
+from .preprocessing import sample_img
 
 
 def unfold(img, snake):

@@ -4,7 +4,7 @@ import pandas as pd
 import time
 import cv2
 import json
-from texture_pkg import sample_img
+from .preprocessing import sample_img
 
 
 def quant_img(img, q):
