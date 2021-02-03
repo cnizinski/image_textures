@@ -21,6 +21,7 @@ def interpolate(xi, p0, p1):
 def img_info(fname, fields):
     '''
     Gets condensed SEM image name and info
+    (for use with UofU UOC SEM database)
     Inputs  : fname (str, SEM image filename)
               fields (list of str, all data fields)
     Outputs : info_dict (dictionary of from filename)
@@ -65,38 +66,6 @@ def img_info(fname, fields):
     info_dict['FileName'] = fname
     # Return image id and info as dictionary
     return info_dict
-
-
-def convert_fname(fname, fields):
-    '''
-    Converts project 1 filenames to other scheme
-    '''
-    # Fill dictionary from filename and data fields
-    idict = {}
-    info = re.split('_', fname)
-    for i in range(0, len(fields)):
-        idict[fields[i]] = info[i]
-    # Get HFW from magnification
-    if idict['Magnification'] == '10000x':
-        hfw = '30.6um'
-    elif idict['Magnification'] == '25000x':
-        hfw = '12.3um'
-    elif idict['Magnification'] == '50000x':
-        hfw = '6.13um'
-    elif idict['Magnification'] == '100000x':
-        hfw = '3.06um'
-    else:
-        hfw = 'NA'
-    # Create new filename
-    new_fname = idict['Material'] + '_' + idict['Magnification'] + '_'
-    new_fname += '1024x934_' + hfw + '_' + idict['Precipitate'] + '_'
-    new_fname += idict['CalcinationTemp'] + '_' + idict['CalcinationTime'] + '_'
-    new_fname += 'NA_NA_NA_NA_'
-    new_fname += idict['Ore'] + '-' + idict['Leach'] + '-' + idict['Purification']
-    new_fname += '_NA_TLD_NoCoat_' + idict['Replicate'][-1] + '_' + idict['Particle'][-1] + '_'
-    new_fname += idict['Image'][0:3] + '_' + 'NA.tif'
-    # Return image id and info as dictionary
-    return new_fname
 
 
 def quick_filter(df, filt_dict):
