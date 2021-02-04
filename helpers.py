@@ -83,7 +83,7 @@ def quick_filter(df, filt_dict):
 
 def json2df(dpath, dfiles):
     '''
-    Returns filtered dataframe from info in dictionary
+    Returns dataframe from set of json data files
     Inputs  : dpath (str, path to datafiles)
               dfiles (list of filenames to import)
     Outputs : concatenated dataframes
