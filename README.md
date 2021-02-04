@@ -7,7 +7,7 @@
 ### helpers.py
 Functions for data handling and various mathematical functions.
 * interpolate(xi, p0, p1) - Linear interpolation between 2 points
-* img_info(fname, fields) - Returns dictionary of image info from regularly formatted filenames
+* img_info(fname, fields) - Returns dictionary of image info from regularly formatted filenames; the dicts from each image can quickly be converted to a pandas dataframe for data exploration and filtering
 * quick_filter(df, filt_dict) - Returns filtered dataframe from info in dictionary
 * json2df(dpath, dfiles) - Returns dataframe from set of json data files
 ### preprocessing.py
@@ -22,14 +22,14 @@ Functions needed to implement angle measurement technique (AMT) texture analysis
 * get_right(imgspec, cidx, scale) - Returns right point for angle measurement from center index and scale
 * calc_angle(cpt, lpt, rpt) - calculates angle from center, left, and right points using dot product
 * img_amt(img_roi, max_scale, n, snakes) - Runs AMT for single image region up to max_scale index and with n points sampled, returns dictionary of mean angles
-* batch_amt(img_df, img_path, save_path, label, params) - Runs AMT for batch of images, returns dict with each image's AMT data and saves it as json file
+* batch_amt(img_df, img_path, save_path, label, params) - Runs AMT for batch of images (whose filenames are listed in the dataframe), returns dict with each image's AMT data and saves it as json file
 ### glcm.py
 Functions needed to implement gray level co-occurrence matrix (GLCM) texture analysis and to compute Haralick texture features.
 * quant_img(img, q) - Returns quantized image with q bins from grayscale image
 * get_glcms(img, levels, dist) - Returns co-occurrence matrices at 0, 45, 90, and 135 degrees at specified distance and with specified gray level quantization
 * Haralick features and helper functions - functions for computing Haralick features from the 4 directional GLCMs
 * glcm_features(glcms_dict, sf) - Produces dictionary for each Haralick feature from 4 directional GLCMs, allows for dict key suffix to be specified
-* batch_glcm(img_df, img_path, save_path, label, params) - Produces GLCM feature data for a batch of images listed in a dataframe, saves to file and returns dict for batch
+* batch_glcm(img_df, img_path, save_path, label, params) - Produces GLCM feature data for a batch of images (whose filenames are listed in the dataframe), saves to file and returns dict for batch
 ### cnnfeatures.py
 Uses pre-trained VGG19 classifier to extract output of FC layer before predictions.
 * batch_vgg19(img_df, img_path, save_path, label, params) - Returns FC output and ImageNet predicted label for a batch of images (as a pandas dataframe)
