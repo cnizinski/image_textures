@@ -1,7 +1,7 @@
 # image-textures
-* Angle measurement technique (AMT)
-* Gray level co-occurrence matrix (GLCM)
-* Convolutional neural network (CNN) fully-connected (FC) layer outputs
+* Angle measurement technique (AMT) - a spectral texture analysis method that measures mean angles along unfolded grayscale image spectra at different scales; the mean angle AMT spectra reveal information about the image's compexity and periodicity on certain scales.
+* Gray level co-occurrence matrix (GLCM) - a statistical texture method that computes directionally-independent features from co-occurrence matrices of certain quantization levels and distances.
+* Convolutional neural networks (CNNs) - automatic feature extraction using dense layer output.
 
 ## Modules and Functions
 ### helpers.py
