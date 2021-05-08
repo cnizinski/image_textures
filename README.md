@@ -1,4 +1,4 @@
-# image-textures
+# image_textures
 * Angle measurement technique (AMT)
   * A spectral texture analysis method that measures mean angles along unfolded grayscale image spectra at different scales
   * The mean angle AMT spectra reveal information about the image's compexity and periodicity on certain scales
