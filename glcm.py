@@ -4,6 +4,8 @@ import pandas as pd
 import time
 import cv2
 import json
+import os
+from tqdm import tqdm
 from .preprocessing import sample_img
 
 
@@ -603,19 +605,17 @@ def batch_glcm(img_df, img_path, save_path, label, params):
               save_path (file path to save data, str)
               label (label for batch, str)
               params (dictionary of parameters)
-    Outputs : batch_dict
+    Outputs : batch_dict converted to DataFrame
     Usage   : params = {'offset':[1,5], 'gl':8}
-              batch_dict = batch_glcm(adu_df, 'data/', 'ADU', params)
+              out_df = batch_glcm(adu_df, 'data/', 'ADU', params)
     '''
-    start = time.perf_counter()
     r, c = params['rows'], params['cols']
     # Initialize batch dictionary
     batch_dict = {}
     # Iterate through images in dataframe
-    for idx in img_df.index:
+    for idx in tqdm(img_df.index):
         # Import image
-        fname = img_df.loc[idx]['FileName']
-        img = cv2.imread(img_path+fname, cv2.IMREAD_GRAYSCALE)
+        img = cv2.imread(os.path.join(img_path,img_df.loc[idx]['FileName']), cv2.IMREAD_GRAYSCALE)
         # Check if image can be loaded
         if img is None:
             continue
@@ -627,15 +627,20 @@ def batch_glcm(img_df, img_path, save_path, label, params):
                 sf_os = str(offset)
                 glcms = get_glcms(subimg, params['gl'], offset)
                 data.update(glcm_features(glcms, sf_os))
-            data['Label'] = label
-            data['Image'] = idx
-            batch_dict[idx + '_' + str(i)] = data
+            # Get label from img_df (if None) or string (if specified)
+            if label is None:
+                data['Label'] = img_df.loc[idx]['Label']
+            else:
+                data['Label'] = label
+            data['Image'] = img_df.loc[idx]['FileName']
+            batch_dict[img_df.loc[idx]['FileName'] + '_' + str(i)] = data
     # Save batch_dict to json
-    out = save_path + label + '.json'
+    if label is None:
+        out = os.path.join(save_path, "all-glcm.json")
+    else:
+        out = os.path.join(save_path, label+"glcm.json")
     with open (out, 'w') as fp:
         json.dump(batch_dict, fp, indent=4)
     print("Batch data written to ", out)
-    split = np.round(time.perf_counter() - start, 1)
-    print("Batch time = {0:6.1f} seconds\n".format(split))
     # Return dictionary
-    return batch_dict
+    return pd.DataFrame.from_dict(data=batch_dict, orient='index')
