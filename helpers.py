@@ -18,21 +18,26 @@ def interpolate(xi, p0, p1):
     return yi
 
 
-def img_info(fname, fields):
+def img_info(fname, fields="default"):
     '''
     Gets condensed SEM image name and info
-    (for use with UofU UOC SEM database)
     Inputs  : fname (str, SEM image filename)
-              fields (list of str, all data fields)
+              fields (list of strings for data categories or "default")
     Outputs : info_dict (dictionary of from filename)
     '''
+    #
+    if fields == "default":
+        fields = ["Material", "Magnification", "Resolution", "HFW",
+                  "StartingMaterial", "CalcinationTemp", "CalcinationTime",
+                  "AgingTime", "AgingTemp", "AgingHumidity", "AgingOxygen",
+                  "Impurity", "ImpurityConcentration", "Detector", "Coating", 
+                  "Replicate", "Particle", "Image", "AcquisitionDate"]
     # Fill dictionary from filename and data fields
     info_dict = {}
-    info = re.split('_', fname)
-    print(len(info), len(fields))
+    info = re.split('_', fname[:-4])
     # Correctly labeled images
     if (len(info) == len(fields)):
-        for i in range(0, len(fields)-1):
+        for i in range(0, len(fields)):
             info_dict[fields[i]] = info[i]
     # Alpha and UO3 split by underscore
     elif (len(info) == len(fields)+1) and (info[0]=='Alpha'):
@@ -60,9 +65,10 @@ def img_info(fname, fields):
     else:
         print(fname, 'does not contain enough fields')
         for i in range(0, len(fields)-1):
-            info_dict[fields[i]] = 'x'
+            info_dict[fields[i]] = ""
     # 
-    info_dict['Image'] = info_dict['Image'][0:3]
+    info_dict['Image'] = info_dict['Image']
+    #info_dict['AcquisitionDate'] = info_dict['AcquisitionDate'][:-4]
     info_dict['FileName'] = fname
     # Return image id and info as dictionary
     return info_dict
