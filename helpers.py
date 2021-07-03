@@ -2,6 +2,9 @@ import numpy as np
 import pandas as pd
 import math
 import re
+from PIL import Image
+import os
+from tqdm import tqdm
 
 
 def interpolate(xi, p0, p1):
@@ -101,3 +104,21 @@ def json2df(dpath, dfiles):
         df_list.append(temp_df)
     return pd.concat(df_list)
 
+
+def drop_images(df, fname_col, img_path):
+    '''
+    Drops unreadable images from dataframe
+    '''
+    bad_imgs = []
+    dropped = 0
+    for idx in tqdm(df.index, total=len(df)):
+        fname = os.path.join(img_path, df.loc[idx][fname_col])
+        try:
+            _img = Image.open(fname)
+            _img.load()
+        except:
+            bad_imgs.append(idx)
+            dropped += 1
+            # print(idx, df.loc[idx][fname_col], 'dropped from df')
+    print(dropped, " images dropped from df")
+    return df.drop(bad_imgs)

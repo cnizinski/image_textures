@@ -1,61 +1,51 @@
 import numpy as np
-import math
+from numpy.core.numeric import outer
 import pandas as pd
-import time
-import cv2
+import os
 import json
-from .preprocessing import sample_img, random_crop
-# Keras modules
-import keras
-from keras.models import Model
-from keras.preprocessing import image
-import keras.applications.vgg19 as vgg19x
+from PIL import Image
+from tqdm import tqdm
+import torch
+from torchvision import models
+from torchvision import transforms
+from torchvision.datasets.utils import download_url
 
 
-def batch_vgg19(img_df, img_path, save_path, label, params):
-    '''
-    Returns VGG19-extracted features for batch of images
-    Inputs  : img_df (dataframe of images for analysis)
-              img_path (file path to images, str)
-              save_path (file path to save data, str)
-              label (label for batch, str)
-              params (dictionary of parameters)
-    Outputs : batch_dict
-    Usage   : params = {}
-              batch_dict = batch_vgg19(adu_df, 'data/', 'ADU', params)
-    '''
-    start = time.perf_counter()
-    # Initialize batch dictionary
-    batch_dict = {}
-    # Load model
-    model = vgg19x.VGG19(weights='imagenet', include_top=True)
-    extract = Model(inputs=model.input, outputs=model.get_layer('fc2').output)
-    # Iterate through images in dataframe
-    for idx in img_df.index:
-        # Import image
-        fname = img_df.loc[idx]['FileName']
-        img = cv2.imread(img_path + "\\" + fname, cv2.IMREAD_COLOR)
-        # Check if image can be loaded
-        if img is None:
-            print(fname + ' could not be loaded')
-            continue
-        # Extract features for each region of interest
-        for i in range(1,5):
-            data = {}
-            subimg = sample_img(img, 59, 2, 2, i)
-            subimg = random_crop(subimg, 224)
-            x = np.expand_dims(subimg, axis=0)
-            x = vgg19x.preprocess_input(x)
-            data['Features'] = extract.predict(x)[0].tolist()
-            data['Label'] = label
-            data['Image'] = idx
-            batch_dict[idx + '_' + str(i)] = data
-    # Save batch_dict to json
-    out = save_path + "\\" + label + ".json"
-    with open (out, 'w') as fp:
-        json.dump(batch_dict, fp, indent=4)
-    print("Batch data written to ", out)
-    split = np.round(time.perf_counter() - start, 1)
-    print("Batch time = {0:6.1f} seconds\n".format(split))
-    # Return dictionary
-    return batch_dict
+def batch_cnn(image_dir, image_list, label_list):
+    ''''''
+    # Load pre-trained ResNet18 model to device
+    DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    resnet = models.resnet18(pretrained=True)
+    resnet.to(DEVICE)
+    extractor = torch.nn.Sequential(*(list(resnet.children())[:-1]))
+    extractor.to(DEVICE)
+    # Get labels
+    download_url("https://s3.amazonaws.com/deep-learning-models/image-models/imagenet_class_index.json", ".", "imagenet_class_index.json")
+    with open("imagenet_class_index.json", "r") as h:
+        labels = json.load(h)
+    # Image preprocessing
+    preprocess = transforms.Compose([transforms.Resize(943),
+                                     transforms.CenterCrop(224),
+                                     transforms.ToTensor(),
+                                     transforms.Normalize(
+                                         mean=[0.485, 0.456, 0.406],
+                                         std=[0.229, 0.224, 0.225])])
+    # Load images, make predictions
+    result_arr = np.zeros((len(image_list), 4), dtype="object")
+    for ii in tqdm(range(len(image_list)), total=len(image_list)):
+        fname = image_list[ii]
+        img_data = {}
+        img = Image.open(os.path.join(image_dir, fname)).convert("RGB")
+        img_tensor = torch.unsqueeze(preprocess(img), 0).to(DEVICE)
+        with torch.no_grad():
+            resnet.eval()
+            extractor.eval()
+            preds = resnet(img_tensor)
+            feats = extractor(img_tensor)
+        _, idx = torch.max(preds, 1)
+        result_arr[ii, 0] = fname
+        result_arr[ii, 1] = label_list[ii]
+        result_arr[ii, 2] = labels[str(idx.item())][1]
+        result_arr[ii, 3] = feats.flatten().detach().cpu().numpy()
+    return result_arr
+
