@@ -265,7 +265,7 @@ def batch_amt(img_df, img_path, save_path, label, params):
     if label is None:
         out = os.path.join(save_path, "all-amt.json")
     else:
-        out = os.path.join(save_path, label+"glcm.json")
+        out = os.path.join(save_path, label+"-amt.json")
     with open (out, 'w') as fp:
         json.dump(batch_dict, fp, indent=4)
     print("Batch data written to ", out)
